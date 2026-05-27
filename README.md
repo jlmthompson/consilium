@@ -4,7 +4,21 @@ Prototype of a multi-agent deliberation system for the Victor Chang Computationa
 
 ## Quick start
 
-1. Clone or download the files into a directory.
+1. **Get the files onto your computer.** Two options:
+
+   - **Easiest — download as a ZIP (no git or terminal experience required):**
+     1. Open https://github.com/jlmthompson/Consilium in a browser.
+     2. Click the green **Code** button near the top right, then **Download ZIP**.
+     3. Unzip the file somewhere convenient (your Desktop is fine). You'll get a folder called `Consilium-main` containing `index.html`, `app.js`, and the other source files.
+     4. Open a terminal in that folder. On macOS, right-click the folder in Finder → *Services* → *New Terminal at Folder*.
+
+   - **Or — clone with git** (if you already have git installed; check with `git --version`):
+     ```bash
+     git clone https://github.com/jlmthompson/Consilium.git
+     cd Consilium
+     ```
+     If you don't have git, install it with `brew install git` on macOS or download it from https://git-scm.com.
+
 2. Open `index.html` in a browser. For best results run a local server (so PubMed CORS and clipboard behave nicely):
    ```bash
    npx serve .
