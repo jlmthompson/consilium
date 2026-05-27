@@ -1,8 +1,6 @@
 # Computational Genomics Virtual Lab
 
-Prototype of a multi-agent deliberation system for the Victor Chang Computational Genomics Lab, adapted from Zou et al. (2025, *Nature*). A human researcher poses a scientific agenda, and a team of LLM agents with specialist personas debates it across a structured set of rounds.
-
-This is a **trial prototype**, not production software. Runs entirely in the browser; no backend.
+Prototype of a multi-agent deliberation system for the Victor Chang Computational Genomics Lab. A human researcher poses a scientific agenda, and a team of LLM agents with specialist personas debates it across a structured set of rounds.
 
 ## Quick start
 
@@ -14,22 +12,8 @@ This is a **trial prototype**, not production software. Runs entirely in the bro
    python3 -m http.server 8000
    ```
 3. In the header, paste your **Anthropic API key**. It is stored in `sessionStorage` only and is cleared when the tab closes.
-4. (Optional) Change the **model ID** in the header. Defaults to `claude-sonnet-4-6`; you can swap to any Claude model your key has access to (e.g. `claude-opus-4-7` for higher-quality reasoning, `claude-haiku-4-5-20251001` for cheaper/faster runs). The original `claude-sonnet-4-20250514` referenced in the project brief has since been retired.
+4. (Optional) Change the **model ID** in the header. Defaults to `claude-sonnet-4-6`; you can swap to any Claude model your key has access to (e.g. `claude-opus-4-7` for higher-quality reasoning, `claude-haiku-4-5` for cheaper/faster runs). 
 5. Write an **agenda**, paste optional **context** (data availability, prior results, constraints), pick the number of **rounds**, and click **Run Meeting**.
-
-## Files
-
-```
-Consilium/
-├── index.html   # Layout + script tags
-├── style.css    # Styling, agent colour coding
-├── agents.js    # Default agent personas + system-prompt builder
-├── pubmed.js    # PubMed E-utilities wrapper (esearch + esummary + efetch abstracts)
-├── app.js       # State, meeting runner, UI rendering, export
-└── README.md    # This file
-```
-
-No build step. No `npm install` required.
 
 ## Meeting types
 
@@ -80,15 +64,6 @@ After each meeting, a pill appears in the footer. Click a pill to view that meet
 ## Export
 
 The **Export as Markdown** button downloads the currently-displayed meeting as a `.md` file: agenda, context, every turn (including tool results), and the final summary, in chronological order.
-
-## Scope (what this prototype does *not* do)
-
-- No user accounts or authentication
-- No persistent storage — close the tab, lose everything
-- No script execution — scripts are generated and copied, not run
-- No file upload — paste context as text
-- No streaming responses (turns appear as wholes)
-- No deployment — local-only
 
 ## Test scenario
 
