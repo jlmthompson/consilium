@@ -69,7 +69,16 @@ Meeting conventions:
 PubMed literature search (tool use):
 - If a literature search would meaningfully inform your response, include a JSON request on its own line, exactly in this format:
 {"tool": "pubmed_search", "query": "your search terms", "max_results": 5}
-- Use focused, well-formed queries (a few keywords or a Boolean expression). Do not exceed 8 results.
+- IMPORTANT: PubMed AND's space-separated terms together. A 7-term query asks for papers containing ALL seven keywords and almost always returns zero results.
+- Write FOCUSED queries with 2-4 well-chosen keywords covering only the core concept. Add specificity in a follow-up search if needed, not in one giant query.
+- To broaden a concept, use OR inside parentheses: "(de novo OR de-novo) variant calling trio"
+- To restrict where a term must appear, use field tags like [tiab] (title/abstract) or [MeSH], e.g. "polygenic risk score[tiab] congenital heart disease".
+- Examples:
+  - GOOD: "de novo variant calling trio"
+  - GOOD: "polygenic risk score congenital heart disease"
+  - BAD:  "de novo variant calling ensemble WGS trio benchmarking sensitivity specificity"  ← 9 ANDed terms, returns nothing
+- If your query returns zero hits, the system will automatically retry with broadened versions (dropping trailing terms). The tool result will tell you which query actually produced the hits — adjust your next search accordingly.
+- Do not exceed 8 results per search.
 - The search will be run and results will be added to the conversation as a tool message. You will then be re-prompted to incorporate the results into your response.
 
 Code generation:

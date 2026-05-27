@@ -1,52 +1,48 @@
 // PubMed E-utilities wrapper. No API key required.
-// Returns { query, count, items: [{pmid, title, authors, year, journal, abstract}], formatted }.
+//
+// Returns { query, usedQuery, broadened, count, items, formatted, attempts }.
+// If the agent's query returns zero hits, the wrapper automatically retries with
+// progressively shorter prefixes of the query (first half → first 3 → first 2),
+// since space-separated PubMed terms are AND'd and overly specific queries
+// almost always yield zero results.
 
 const PUBMED_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
 
 async function pubmedSearch(query, maxResults = 5) {
   const capped = Math.max(1, Math.min(8, Number(maxResults) || 5));
 
-  // 1. esearch — get PMIDs
-  const esearchUrl =
-    `${PUBMED_BASE}/esearch.fcgi?db=pubmed&retmode=json` +
-    `&retmax=${capped}&term=${encodeURIComponent(query)}`;
-  const esearchRes = await fetch(esearchUrl);
-  if (!esearchRes.ok) {
-    throw new Error(`PubMed esearch failed (${esearchRes.status})`);
+  // 1. esearch — try the original query, then progressively broaden if it returned nothing.
+  const variants = [query, ...broadenVariants(query)];
+  const attempts = [];
+  let ids = [];
+  let usedQuery = query;
+
+  for (const v of variants) {
+    const found = await esearch(v, capped);
+    attempts.push({ query: v, count: found.length });
+    if (found.length > 0) {
+      ids = found;
+      usedQuery = v;
+      break;
+    }
   }
-  const esearchData = await esearchRes.json();
-  const ids = esearchData?.esearchresult?.idlist ?? [];
+
   if (ids.length === 0) {
     return {
       query,
+      usedQuery: null,
+      broadened: false,
       count: 0,
       items: [],
-      formatted: `PubMed search for "${query}" returned no results.`,
+      attempts,
+      formatted: formatEmpty(query, attempts),
     };
   }
 
-  // 2. esummary — metadata
-  const esummaryUrl =
-    `${PUBMED_BASE}/esummary.fcgi?db=pubmed&retmode=json&id=${ids.join(",")}`;
-  const summaryRes = await fetch(esummaryUrl);
-  if (!summaryRes.ok) {
-    throw new Error(`PubMed esummary failed (${summaryRes.status})`);
-  }
-  const summaryData = await summaryRes.json();
-
-  // 3. efetch — abstracts (best-effort; tolerate failure)
-  let abstractsByPmid = {};
-  try {
-    const efetchUrl =
-      `${PUBMED_BASE}/efetch.fcgi?db=pubmed&rettype=abstract&retmode=xml&id=${ids.join(",")}`;
-    const efetchRes = await fetch(efetchUrl);
-    if (efetchRes.ok) {
-      const xmlText = await efetchRes.text();
-      abstractsByPmid = parseAbstractsFromXml(xmlText);
-    }
-  } catch (e) {
-    // Non-fatal — fall back to metadata only.
-  }
+  // 2. esummary — metadata.
+  const summaryData = await esummary(ids);
+  // 3. efetch — abstracts (best-effort; tolerate failure).
+  const abstractsByPmid = await efetchAbstracts(ids).catch(() => ({}));
 
   const items = ids
     .map((id) => {
@@ -66,12 +62,84 @@ async function pubmedSearch(query, maxResults = 5) {
     })
     .filter(Boolean);
 
-  const formatted = formatForAgent(query, items);
-  return { query, count: items.length, items, formatted };
+  const broadened = usedQuery !== query;
+  const formatted = formatForAgent(query, usedQuery, broadened, items);
+
+  return { query, usedQuery, broadened, count: items.length, items, attempts, formatted };
 }
 
-function formatForAgent(query, items) {
-  const lines = [`PubMed search results for "${query}":`, ""];
+// ---------------------------------------------------------------------------
+// E-utilities calls
+// ---------------------------------------------------------------------------
+
+async function esearch(query, retmax) {
+  const url =
+    `${PUBMED_BASE}/esearch.fcgi?db=pubmed&retmode=json` +
+    `&retmax=${retmax}&term=${encodeURIComponent(query)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`PubMed esearch failed (${res.status})`);
+  const data = await res.json();
+  return data?.esearchresult?.idlist ?? [];
+}
+
+async function esummary(ids) {
+  const url = `${PUBMED_BASE}/esummary.fcgi?db=pubmed&retmode=json&id=${ids.join(",")}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`PubMed esummary failed (${res.status})`);
+  return res.json();
+}
+
+async function efetchAbstracts(ids) {
+  const url =
+    `${PUBMED_BASE}/efetch.fcgi?db=pubmed&rettype=abstract&retmode=xml&id=${ids.join(",")}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`PubMed efetch failed (${res.status})`);
+  const xml = await res.text();
+  return parseAbstractsFromXml(xml);
+}
+
+// ---------------------------------------------------------------------------
+// Query broadening
+// ---------------------------------------------------------------------------
+
+function broadenVariants(query) {
+  // Tokenise on whitespace and produce progressively shorter prefix queries,
+  // each strictly shorter than the last. Stops at 2 tokens.
+  const tokens = query.trim().split(/\s+/);
+  if (tokens.length <= 3) return [];
+
+  const candidateSizes = [
+    Math.ceil(tokens.length * 0.66), // drop ~1/3 of trailing terms
+    Math.ceil(tokens.length / 2),    // drop ~1/2
+    3,
+    2,
+  ];
+  const seen = new Set([tokens.length]);
+  const variants = [];
+  for (const s of candidateSizes) {
+    if (s >= 2 && s < tokens.length && !seen.has(s)) {
+      seen.add(s);
+      variants.push(tokens.slice(0, s).join(" "));
+    }
+  }
+  return variants;
+}
+
+// ---------------------------------------------------------------------------
+// Formatting
+// ---------------------------------------------------------------------------
+
+function formatForAgent(originalQuery, usedQuery, broadened, items) {
+  const lines = [];
+  if (broadened) {
+    lines.push(
+      `PubMed search results — original query "${originalQuery}" returned 0 hits, ` +
+        `broadened to "${usedQuery}" (consider whether the broadened results are still on-topic):`
+    );
+  } else {
+    lines.push(`PubMed search results for "${originalQuery}":`);
+  }
+  lines.push("");
   items.forEach((item, idx) => {
     lines.push(`${idx + 1}. ${item.title}`);
     lines.push(`   ${item.authors} (${item.year}). ${item.journal}. PMID:${item.pmid}`);
@@ -85,6 +153,24 @@ function formatForAgent(query, items) {
   });
   return lines.join("\n").trim();
 }
+
+function formatEmpty(query, attempts) {
+  const lines = [`PubMed search for "${query}" returned no results.`, ""];
+  if (attempts.length > 1) {
+    lines.push("Broadening attempts:");
+    for (const a of attempts) lines.push(`  • "${a.query}" → 0 hits`);
+    lines.push("");
+  }
+  lines.push(
+    "Consider rephrasing with fewer, more general terms, or use OR to broaden synonyms " +
+      'e.g. "(term-A OR synonym) core-concept".'
+  );
+  return lines.join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// XML helpers
+// ---------------------------------------------------------------------------
 
 function parseAbstractsFromXml(xml) {
   // Minimal XML parsing: pull each <PubmedArticle>...<PMID>id</PMID>...
