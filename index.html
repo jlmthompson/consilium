@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VCCRI Virtual Lab</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>VCCRI Virtual Lab</h1>
+    <div class="header-config">
+      <label class="config-field">
+        <span>Model</span>
+        <input type="text" id="model-input" value="claude-sonnet-4-6" spellcheck="false" />
+      </label>
+      <label class="config-field">
+        <span>API Key</span>
+        <input type="password" id="apikey-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" />
+      </label>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <aside class="setup-panel">
+      <h2>Meeting Setup</h2>
+
+      <div class="field">
+        <label class="field-label">Meeting type</label>
+        <div class="radio-group">
+          <label><input type="radio" name="meeting-type" value="team" checked /> Team meeting</label>
+          <label><input type="radio" name="meeting-type" value="individual" /> Individual meeting</label>
+        </div>
+      </div>
+
+      <div class="field individual-only" hidden>
+        <label class="field-label" for="individual-agent">Agent</label>
+        <select id="individual-agent">
+          <option value="pi">Principal Investigator</option>
+          <option value="critic">Scientific Critic</option>
+          <option value="specialist1">Specialist 1</option>
+          <option value="specialist2">Specialist 2</option>
+        </select>
+        <label class="inline-check"><input type="checkbox" id="critic-review" /> Add Scientific Critic review at end</label>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="agenda-input">Agenda</label>
+        <textarea id="agenda-input" rows="5" placeholder="What scientific question should the team deliberate on?"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="context-input">Context (optional)</label>
+        <textarea id="context-input" rows="4" placeholder="Paste paper abstracts, prior results, constraints, data availability..."></textarea>
+      </div>
+
+      <div class="field team-only">
+        <label class="field-label" for="rounds-input">Rounds</label>
+        <input type="number" id="rounds-input" min="1" max="5" value="3" />
+      </div>
+
+      <button id="run-btn" class="primary-btn">Run Meeting</button>
+
+      <div id="status" class="status idle">Idle</div>
+
+      <details class="agent-editor">
+        <summary>Edit agent personas</summary>
+        <div id="agent-editor-content"></div>
+        <button id="reset-agents-btn" class="secondary-btn">Reset to defaults</button>
+      </details>
+    </aside>
+
+    <section class="transcript-panel">
+      <div class="transcript-header">
+        <h2 id="transcript-title">Transcript</h2>
+        <button id="export-btn" class="secondary-btn" disabled>Export as Markdown</button>
+      </div>
+      <div id="transcript" class="transcript-body">
+        <div class="empty-state">Run a meeting to see the transcript here.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="meeting-chain">
+    <div class="chain-pills" id="chain-pills">
+      <span class="chain-empty">No prior meetings yet.</span>
+    </div>
+    <button id="new-meeting-btn" class="secondary-btn" disabled>New Meeting (carry forward summary)</button>
+  </footer>
+
+  <script src="agents.js"></script>
+  <script src="pubmed.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
