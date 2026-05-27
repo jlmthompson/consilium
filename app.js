@@ -1,4 +1,4 @@
-// VCCRI Virtual Lab — main application logic.
+// Computational Genomics Virtual Lab — main application logic.
 // Plain ES2017+; no build step. Talks directly to the Anthropic API from
 // the browser using the dangerous-direct-browser-access header. See README.
 

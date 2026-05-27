@@ -1,4 +1,4 @@
-# VCCRI Virtual Lab
+# Computational Genomics Virtual Lab
 
 Prototype of a multi-agent deliberation system for the Victor Chang Computational Genomics Lab, adapted from Zou et al. (2025, *Nature*). A human researcher poses a scientific agenda, and a team of LLM agents with specialist personas debates it across a structured set of rounds.
 

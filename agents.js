@@ -1,4 +1,4 @@
-// Default agent personas for the VCCRI Virtual Lab.
+// Default agent personas for the Computational Genomics Virtual Lab.
 // All fields are user-editable in the UI; this file just provides the defaults
 // and the helper that turns an agent record into a system prompt.
 
@@ -50,7 +50,7 @@ const DEFAULT_AGENTS = {
 };
 
 function buildSystemPrompt(agent) {
-  return `You are ${agent.title}, participating in a VCCRI Virtual Lab meeting.
+  return `You are ${agent.title}, participating in a Computational Genomics Virtual Lab meeting.
 
 Expertise:
 ${agent.expertise}

@@ -1,22 +1,22 @@
 :root {
-  --bg: #f6f7fb;
+  --bg: #fbf5f5;
   --panel: #ffffff;
-  --border: #e3e5ee;
-  --text: #1c1f2e;
-  --muted: #6a7088;
-  --accent: #4856d6;
-  --accent-dark: #353fa6;
+  --border: #ead6d6;
+  --text: #1f1212;
+  --muted: #735050;
+  --accent: #7f1d1d;
+  --accent-dark: #4c0519;
 
-  --pi: #2f6fdb;
-  --pi-bg: #e8f0fc;
-  --critic: #d97706;
-  --critic-bg: #fdf3e3;
-  --specialist1: #1f9d55;
-  --specialist1-bg: #e6f5ee;
-  --specialist2: #8b5cf6;
-  --specialist2-bg: #f1ecfb;
-  --tool: #475569;
-  --tool-bg: #eef0f4;
+  --pi: #7f1d1d;
+  --pi-bg: #fee2e2;
+  --critic: #c2410c;
+  --critic-bg: #ffedd5;
+  --specialist1: #dc2626;
+  --specialist1-bg: #fef2f2;
+  --specialist2: #9f1239;
+  --specialist2-bg: #ffe4e6;
+  --tool: #57534e;
+  --tool-bg: #f5f4f2;
 }
 
 * {
@@ -229,8 +229,9 @@ select:focus {
 }
 
 .status.done {
-  border-left-color: var(--specialist1);
-  color: var(--text);
+  border-left-color: var(--accent-dark);
+  background: var(--bg);
+  color: var(--muted);
 }
 
 /* Agent editor */
